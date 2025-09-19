@@ -6,33 +6,107 @@
   <title>Mapa CONCEPMI</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
     #map {
       height: 100vh;
       width: 100%;
+      position: relative;
+    }
+    /* Botones flotantes */
+    .buttons {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+    }
+    .btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+    .btn:hover {
+      background: #f0f0f0;
+    }
+    /* Logo CONCEPMI */
+    .logo {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      z-index: 1000;
+    }
+    .logo img {
+      width: 100px;
+      opacity: 0.9;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
+  <!-- Botones flotantes -->
+  <div class="buttons">
+    <button class="btn" onclick="toggleLayer('restaurantes')">🍽 Restaurantes</button>
+    <button class="btn" onclick="toggleLayer('hoteles')">🏨 Hoteles</button>
+    <button class="btn" onclick="toggleLayer('turismo')">🗺 Turísticos</button>
+  </div>
+
+  <!-- Logo CONCEPMI -->
+  <div class="logo">
+    <img src="https://pmilimaeventos.com/concepmi/wp-content/uploads/2025/09/LOGO-CONCEPMI-V2-1.png" alt="Logo CONCEPMI">
+  </div>
+
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // Coordenadas de la nueva dirección
+    // Coordenadas base (ejemplo en Lima)
     var lat = -12.10469204352299;
     var lng = -76.96163883340631;
 
-    var map = L.map('map').setView([lat, lng], 16);
+    var map = L.map('map').setView([lat, lng], 15);
 
-    // Capa base
+    // Capa base OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Marcador
-    L.marker([lat, lng])
-      .addTo(map)
-      .bindPopup("<b>Mi Ubicación</b><br>Jr. Alonso de Molina 1652, Santiago de Surco 15023")
-      .openPopup();
+    // Capas de marcadores
+    var layers = {
+      restaurantes: L.layerGroup([
+        L.marker([-12.105, -76.962]).bindPopup("🍽 Restaurante El Sabor"),
+        L.marker([-12.103, -76.960]).bindPopup("🍽 La Parrilla Limeña")
+      ]),
+      hoteles: L.layerGroup([
+        L.marker([-12.106, -76.963]).bindPopup("🏨 Hotel Surco Inn"),
+        L.marker([-12.102, -76.959]).bindPopup("🏨 Hotel Los Olivos")
+      ]),
+      turismo: L.layerGroup([
+        L.marker([-12.107, -76.961]).bindPopup("🗺 Parque Central"),
+        L.marker([-12.104, -76.958]).bindPopup("🗺 Museo Local")
+      ])
+    };
+
+    // Función para mostrar/ocultar capas
+    function toggleLayer(type) {
+      if (map.hasLayer(layers[type])) {
+        map.removeLayer(layers[type]);
+      } else {
+        map.addLayer(layers[type]);
+      }
+    }
   </script>
 </body>
 </html>
