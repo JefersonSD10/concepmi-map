@@ -1,112 +1,232 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa CONCEPMI</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <meta charset="utf-8">
+  <title>CONCEPMI</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+
+  <!-- Favicon -->
+  <link rel="icon" href="https://pmilimaeventos.com/concepmi/wp-content/uploads/2025/09/LOGO-CONCEPMI-V2-1.png" type="image/x-icon">
+  <link rel="shortcut icon" href="https://pmilimaeventos.com/concepmi/wp-content/uploads/2025/09/LOGO-CONCEPMI-V2-1.png" type="image/x-icon">
+
+  <!-- Estilos de Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-    }
-    #map {
-      height: 100vh;
-      width: 100%;
-      position: relative;
-    }
-    /* Botones flotantes */
-    .buttons {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      z-index: 1000;
-    }
-    .btn {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      background: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      cursor: pointer;
-      font-size: 14px;
-      transition: 0.2s;
-    }
-    .btn:hover {
-      background: #f0f0f0;
-    }
-    /* Logo CONCEPMI */
-    .logo {
+    body, html { margin: 0; padding: 0; height: 100%; }
+    #map { height: 100vh; width: 100%; }
+
+    /* Logo */
+    #logo-container {
       position: absolute;
       bottom: 10px;
       right: 10px;
       z-index: 1000;
     }
-    .logo img {
-      width: 100px;
-      opacity: 0.9;
+    #logo {
+      width: 140px;
+    }
+
+    /* Botones */
+    #button-container {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1000;
+    }
+    .map-button {
+      background: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
+    }
+    .map-button:hover {
+      background: #f0f0f0;
+    }
+
+    /* Toast (mensaje flotante) */
+    #toast {
+      visibility: hidden;
+      min-width: 250px;
+      margin-left: -125px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px;
+      position: fixed;
+      z-index: 2000;
+      left: 50%;
+      bottom: 30px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.5s, bottom 0.5s;
+    }
+    #toast.show {
+      visibility: visible;
+      opacity: 1;
+      bottom: 50px;
+    }
+
+    /* Icono emoji para el marcador */
+    .emoji-icon {
+      font-size: 28px;
+      line-height: 28px;
     }
   </style>
 </head>
 <body>
+  <!-- Logo -->
+  <div id="logo-container">
+    <a href="https://pmilimaeventos.com/concepmi/">
+      <img src="https://pmilimaeventos.com/concepmi/wp-content/uploads/2025/09/LOGO-CONCEPMI-V2-1.png" alt="Logo" id="logo">
+    </a>
+  </div>
+
+  <!-- Botones -->
+  <div id="button-container">
+    <button class="map-button" id="restaurants-button">🍴</button>
+    <button class="map-button" id="hotels-button">🛏️</button>
+    <button class="map-button" id="tourist-attractions-button">📸</button>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <!-- Mapa -->
   <div id="map"></div>
 
-  <!-- Botones flotantes -->
-  <div class="buttons">
-    <button class="btn" onclick="toggleLayer('restaurantes')">🍽 Restaurantes</button>
-    <button class="btn" onclick="toggleLayer('hoteles')">🏨 Hoteles</button>
-    <button class="btn" onclick="toggleLayer('turismo')">🗺 Turísticos</button>
-  </div>
-
-  <!-- Logo CONCEPMI -->
-  <div class="logo">
-    <img src="https://pmilimaeventos.com/concepmi/wp-content/uploads/2025/09/LOGO-CONCEPMI-V2-1.png" alt="Logo CONCEPMI">
-  </div>
-
+  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // Coordenadas base (ejemplo en Lima)
-    var lat = -12.10469204352299;
-    var lng = -76.96163883340631;
+    // 📍 Coordenadas del CONCEPMI
+    const concepmiCoords = [-12.104734004686257, -76.96171393525727];
 
-    var map = L.map('map').setView([lat, lng], 15);
+    // Radio de búsqueda en metros
+    const searchRadius = 5000;
 
-    // Capa base OpenStreetMap
+    // Inicializar mapa
+    const map = L.map('map').setView(concepmiCoords, 16);
+
+    // Cargar mapa base OSM
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/">OSM</a> contributors'
     }).addTo(map);
 
-    // Capas de marcadores
-    var layers = {
-      restaurantes: L.layerGroup([
-        L.marker([-12.105, -76.962]).bindPopup("🍽 Restaurante El Sabor"),
-        L.marker([-12.103, -76.960]).bindPopup("🍽 La Parrilla Limeña")
-      ]),
-      hoteles: L.layerGroup([
-        L.marker([-12.106, -76.963]).bindPopup("🏨 Hotel Surco Inn"),
-        L.marker([-12.102, -76.959]).bindPopup("🏨 Hotel Los Olivos")
-      ]),
-      turismo: L.layerGroup([
-        L.marker([-12.107, -76.961]).bindPopup("🗺 Parque Central"),
-        L.marker([-12.104, -76.958]).bindPopup("🗺 Museo Local")
-      ])
+    // 🎓 Marcador personalizado con emoji
+    const universityIcon = L.divIcon({
+      className: "emoji-icon",
+      html: "🎓",
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -30]
+    });
+
+    L.marker(concepmiCoords, { icon: universityIcon })
+      .addTo(map)
+      .bindPopup("<b>V CONCEPMI</b><br>Universidad ESAN");
+
+    // 🟦 GeoJSON de la Universidad ESAN (convertido a polígono válido)
+    const esanGeoJSON = {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "properties": {},
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[
+              [-76.96234308563136, -12.10451739095113],
+              [-76.96179619392085, -12.104089604603274],
+              [-76.96077149155643, -12.104297869094822],
+              [-76.95950500548892, -12.104190922484207],
+              [-76.95961438383102, -12.10526038666525],
+              [-76.96004038369001, -12.1063242178396],
+              [-76.9603915457359, -12.107196668814822],
+              [-76.9613817075713, -12.10590769185221],
+              [-76.9621646262312, -12.104883260310828],
+              [-76.96240630989041, -12.104569717597528],
+              [-76.96234308563136, -12.10451739095113] // cierre del polígono
+            ]]
+          }
+        }
+      ]
     };
 
-    // Función para mostrar/ocultar capas
-    function toggleLayer(type) {
-      if (map.hasLayer(layers[type])) {
-        map.removeLayer(layers[type]);
-      } else {
-        map.addLayer(layers[type]);
+    const esanPolygon = L.geoJSON(esanGeoJSON, {
+      style: {
+        color: "#004080",
+        fillColor: "#1E90FF",
+        fillOpacity: 0.25,
+        weight: 2
       }
+    }).addTo(map).bindPopup("Universidad ESAN - Campus");
+
+    // Grupo para lugares cercanos
+    const placesLayer = L.layerGroup().addTo(map);
+
+    // Función toast
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.innerText = message;
+      toast.className = "show";
+      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
     }
+
+    // Función para buscar lugares con Overpass API
+    function searchPlaces(query) {
+      placesLayer.clearLayers();
+
+      const rawQuery = `
+        [out:json][timeout:25];
+        (
+          node(around:${searchRadius},${concepmiCoords[0]},${concepmiCoords[1]})[${query}];
+          way(around:${searchRadius},${concepmiCoords[0]},${concepmiCoords[1]})[${query}];
+          relation(around:${searchRadius},${concepmiCoords[0]},${concepmiCoords[1]})[${query}];
+        );
+        out center;
+      `;
+
+      const overpassUrl = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(rawQuery);
+
+      fetch(overpassUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.elements || data.elements.length === 0) {
+            showToast("No se encontraron lugares cercanos para: " + query);
+          }
+          data.elements.forEach(el => {
+            const lat = el.lat || el.center?.lat;
+            const lon = el.lon || el.center?.lon;
+            if (lat && lon) {
+              const name = el.tags?.name || "Lugar sin nombre";
+              L.marker([lat, lon])
+                .addTo(placesLayer)
+                .bindPopup(`<b>${name}</b><br>${query}`);
+            }
+          });
+        })
+        .catch(err => {
+          console.error("Error Overpass:", err);
+          showToast("Error al buscar en Overpass API");
+        });
+    }
+
+    // Botones
+    document.getElementById("restaurants-button").addEventListener("click", () => {
+      searchPlaces('"amenity"="restaurant"');
+    });
+    document.getElementById("hotels-button").addEventListener("click", () => {
+      searchPlaces('"tourism"="hotel"');
+    });
+    document.getElementById("tourist-attractions-button").addEventListener("click", () => {
+      searchPlaces('"tourism"="attraction"');
+    });
   </script>
 </body>
 </html>
