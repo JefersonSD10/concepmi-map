@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa CONCEPMI</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Coordenadas de la nueva dirección
+    var lat = -12.10469204352299;
+    var lng = -76.96163883340631;
+
+    var map = L.map('map').setView([lat, lng], 16);
+
+    // Capa base
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Marcador
+    L.marker([lat, lng])
+      .addTo(map)
+      .bindPopup("<b>Mi Ubicación</b><br>Jr. Alonso de Molina 1652, Santiago de Surco 15023")
+      .openPopup();
+  </script>
+</body>
+</html>
